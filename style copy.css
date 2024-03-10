@@ -1,0 +1,243 @@
+html,
+body,
+#container {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(0.25turn, #752525, #743702, #753525);
+  color: #f3f3f3;
+  font-family: sans-serif;
+}
+
+#container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+#vis {
+  margin: auto;
+  width: 100vmin;
+  height: 100vmin;
+  overflow: visible;
+}
+
+#gcontrols {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.halo {
+  opacity: 0;
+}
+
+.note {
+  stroke-width: 0.5;
+  stroke: #151515;
+  fill: rgba(255, 255, 255, 1);
+  opacity: 0.4;
+}
+
+.hover .note {
+  opacity: 0.7;
+}
+
+.on .note {
+  fill: #e91e63;
+  opacity: 1;
+}
+
+.pointer-area {
+  stroke: none;
+  opacity: 0;
+}
+
+.controls {
+  margin: auto;
+  padding: 3%;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+.controls button {
+  width: 100%;
+  height: 4vh;
+  margin: auto;
+  background: none;
+  color: white;
+  border: 2px solid white;
+}
+
+.controls button:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.controls button.active {
+  background: white;
+  color: black;
+}
+
+#output-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.output-control {
+  padding: 3%;
+}
+
+.output-control label {
+  padding: 1;
+  font-size: 200%;
+}
+
+#tempo-label {
+  display: inline-block;
+  width: 30px;
+  font-size: 200%;
+}
+
+.midi-required {
+  display: none;
+}
+
+#generating,
+#loading {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 32px;
+}
+
+.bottombtn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  margin-top: -100px;
+}
+
+#btnPower {
+  width: 60%;
+  margin: auto;
+  padding: 2.4% 4%;
+  margin-left: 20%;
+  margin-right: 20%;
+  font-size: 150%;
+  color: #fff;
+  background-color: #003481;
+  border-radius: 20px;
+}
+
+.button:hover {
+  background-color: #0c1ab3
+}
+
+.button:active {
+  background-color: #012248;
+  box-shadow: 0 5px #666;
+  transform: translateY(4px);
+}
+
+#setmidlle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+#AudioPlayer {
+  display: none;
+}
+
+#operations {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 4% auto;
+}
+
+/* 开始录音，结束录音按钮 */
+#btnRecord,
+#btnStop {
+  width: 60%;
+  margin: auto;
+  padding: 2.4% 4%;
+  margin-left: 20%;
+  margin-right: 20%;
+  font-size: 150%;
+  color: #fff;
+  background-color: #003481;
+  border-radius: 20px;
+}
+
+#btnRecord {
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+#log {
+  line-height: 40px;
+  margin: 4% auto;
+  width: 250px;
+  height: 40px;
+  background-color: #ac8677;
+  padding: 4px;
+  border-radius: 20px;
+  padding: 1.4% 3%;
+  font-size: 100%;
+  margin-top: -10px;
+
+}
+
+#log a {
+  color: #151515
+}
+
+#status {
+  display: none;
+}
+
+.show {
+
+  position: fixed;
+
+  top: 0;
+
+}
+
+#nav {
+
+  width: 100%;
+
+  height: 60px;
+
+  background: pink;
+
+}
+
+.box {
+
+  height: 2600px;
+
+  width: 100%;
+
+  background: skyblue;
+
+}

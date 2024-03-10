@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>点击圆盘，生成音乐</title>
+  <script src="./MP3 Encoder_files/sprintf.js"></script>
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <div>
+    <br>
+    <p style="font: 200% 方正姚体; text-align: center;">尝试更换选用的数学定理来调整AI音盘</p>
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <button class="chord-left active" data-chord="major" style="font: 180% 方正姚体;">孙子定理</button>
+      <button class="chord-left" data-chord="minor" style="font: 180% 方正姚体;">四元术</button>
+      <button class="chord-left" data-chord="minor7th" style="font: 180% 方正姚体;">天元术</button>
+      <button class="chord-left" data-chord="dominant7th" style="font: 180% 方正姚体;">正负开方术</button>
+      <button class="chord-left" data-chord="sus2" style="font: 180% 方正姚体;">方程术</button>
+    </div>
+  </div>
+
+  <div id="output-controls">
+    <div class="output-control">
+      <label for="tempo-source-selector" style="font: 180% 方正姚体;">速度</label>
+      <input id="tempo-selector" type="range" min="10" max="200" step="1" value="90">
+      <span id="tempo-label" style="font: 160% 方正姚体;">90</span>
+    </div>
+  </div>
+
+  <div id="gcontrols">
+    <svg id="vis" viewBox="0 0 1000 1000">
+      <defs>
+        <radialGradient id="halo">
+          <stop offset="0%" stop-color="rgba(255, 255, 255, 0.5)" />
+          <stop offset="95%" stop-color="rgba(255, 255, 255, 0.5)" />
+          <stop offset="100%" stop-color="rgba(255, 255, 255, 0)" />
+        </radialGradient>
+      </defs>
+      <g id="vis-halos">
+        <circle cx="500" cy="500" r="100" fill="url(#halo)">
+          <animate attributeName="r" from="100" to="500" dur="3s" repeatCount="indefinite" />
+          <animate attributeName="opacity" from="1" to="0" dur="3s" repeatCount="indefinite" />
+          <animateTransform attributeName="transform" type="rotate" from="0 500 500" to="360 500 500" dur="5s"
+            repeatCount="indefinite" />
+        </circle>
+      </g>
+      <g id="vis-elements"></g>
+    </svg>
+  </div>
+
+  <div>
+    <br><br>
+    <p style="font: 200% 方正姚体; text-align: center;">中央圆盘：算筹 | 生成乐曲：结果<br><br>选择不同的算筹来获得不同的计算结果</p>
+  </div>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br />
+  <div class="bottombtn">
+    <div id="operations">
+      <button id="btnPower" onclick="onPower()">生成解答</button>
+
+      <button id="btnRecord" onclick="onRecord()" disabled="">开始录音</button>
+      <button id="btnStop" onclick="onStop()" disabled="">结束录音</button>
+    </div>
+    <div id="log">
+      点击下载mp3文件:<a id="DownloadLink" download="recorded.mp3" style="color:white;"><span
+          style="color: #151515;">recorded.mp3</span></a><br>
+    </div>
+  </div>
+  <audio id="AudioPlayer" controls="controls">
+    <source type="audio/mpeg">
+  </audio>
+  <span id="status"></span>
+  <br>
+  <br>
+
+
+  <div id="loading">数学大师计算中……</div>
+  <div id="generating" style="display: none">数学大师再重新计算一下……</div>
+  <script src='./js/lodash.js'></script>
+  <script src='./js/magentamusic.min.js'></script>
+  <script src='./js/webmidi.min.js'></script>
+  <script src='./js/web-animations.min.js'></script>
+  <script src='./js/StartAudioContext.js'></script>
+  <script src='./js/tonal.min.js'></script>
+  <script src="./js/script.js"></script>
+
+
+
+  <script id="logger" type="text/javascript">
+    //printf-style console output.
+    function log(fmt, args) {
+      var text = this.sprintf.apply(this, arguments);
+      var element = document.querySelector('#log');
+      element.innerHTML += text + "<br>\n";
+    }
+
+    //printf-style status line.
+    function status(fmt, args) {
+      var text = this.sprintf.apply(this, arguments);
+      var element = document.getElementById('status');
+      element.innerHTML = text;
+    }
+
+    (function (window) {
+      console.log("Window loaded.");
+    })(window);
+  </script>
+
+  <script id="loadjs" type="text/javascript">
+    //Load a supplemental javascript on demand.
+    //cb is the function that will be called when the script is ready.
+    function loadScript(name, path, cb) {
+      var node = document.createElement('SCRIPT');
+      node.type = 'text/javascript';
+      node.src = path;
+      var head = document.getElementsByTagName('HEAD');
+      if (head[0] != null)
+        head[0].appendChild(node);
+      if (cb != null) {
+        node.onreadystagechange = cb;
+        node.onload = cb;
+      }
+    }
+  </script>
+
+  <script id="taskUI" type="text/javascript">
+
+    //(C)2016 nlited systems inc. http://nlited.org
+    var gAudio = null;       //Audio context
+    var gAudioSrc = null;    //Audio source
+    var gNode = null;        //The audio processor node
+    var gIsLame = false;     //Has lame.min.js been loaded?
+    var gLame = null;        //The LAME encoder library
+    var gEncoder = null;     //The MP3 encoder object
+    var wavEncoder = null;
+    var captureStream = null;
+    var gStrmMp3 = [];       //Collection of MP3 buffers
+
+    var gStrmWav = [];
+    var lWavData = []
+    var rWavData = []
+    var lMp3Data = []
+    var rMp3Data = []
+
+
+    var gIsRecording = false;
+    var gCfg = {             //Encoder configuration
+      chnlCt: 2,    //1=mono, 2=stereo
+      bufSz: 16384, //input buffer size (bytes), 16bit signed int.
+      sampleRate: 48000,//Input sample rate (samples per second)
+      bitRate: 192    //Output bit rate (9-128)
+    };
+    var gPcmCt = 0;          //Total input bytes
+    var gMp3Ct = 0;          //Total output bytes
+
+    //Power button
+    function onPower(btn) {
+      if (/Mobi|Android|iPhone/i.test(navigator.userAgent)) {
+        // 当前设备是移动设备
+      } else {
+        if (!gAudio) {
+          PowerOn();
+        } else {
+          PowerOff();
+        }
+      }
+    }
+
+    async function startCapture() {
+      try {
+        captureStream = await navigator.mediaDevices.getDisplayMedia({
+          audio: {
+            autoGainControl: false, echoCancellation: false,
+            noiseSuppression: false
+          }, video: true
+        });
+      } catch (err) {
+        console.error("Error: " + err);
+      }
+      return captureStream;
+    }
+
+    function Float32Concat(first, second) {
+      var firstLength = first.length,
+        result = new Float32Array(firstLength + second.length);
+
+      result.set(first);
+      result.set(second, firstLength);
+
+      return result;
+    }
+
+    function PowerOn() {
+      console.log("Powering up...");
+      var caps = { audio: true };
+      try {
+        //Browser compatibility
+        window.AudioContext = window.AudioContext || window.webkitAudioContext || AudioContext;
+
+        //test
+
+        if (!(gAudio = new window.AudioContext())) {
+          console.log("ERR: Unable to create AudioContext.");
+        } else {
+          captureStream = startCapture()
+          captureStream.then(v => {
+            audio_track = v.getAudioTracks()
+            audio_steam = new MediaStream(audio_track)
+            onUserMedia(audio_steam)
+          }
+          )
+        }
+      } catch (ex) {
+        console.log(ex)
+        console.log("ERR: Unable to find any audio support.");
+        gAudio = null;
+      }
+
+      function onFail(ex) {
+        console.log("ERR: getUserMedia failed: %s", ex);
+      }
+    }
+
+    //Called when audio capture has been created.
+    function onUserMedia(stream) {
+      if (!(gAudioSrc = gAudio.createMediaStreamSource(stream))) {
+        console.log("ERR: Unable to create audio source.");
+      } else if (!gIsLame) {
+        console.log("Fetching encoder...");
+        loadScript("lame", "js/lame.js", LameCreate);
+        loadScript("wav", "js/WavAudioEncoder.js", wavCreate);
+
+      } else {
+        LameCreate();
+      }
+    }
+
+    //Called when the lame library has been loaded.
+    function LameCreate() {
+      gIsLame = true;
+      if (!(gEncoder = Mp3Create())) {
+        console.log("ERR: Unable to create MP3 encoder.");
+      } else {
+        gStrmMp3 = [];
+        gPcmCt = 0;
+        gMp3Ct = 0;
+        console.log("Power ON.");
+        document.getElementById('btnRecord').disabled = false;
+        document.getElementById('btnStop').disabled = false;
+      }
+    }
+
+    function wavCreate() {
+      wavEncoder = new WavAudioEncoder(48000, 1)
+
+    }
+
+    //Create the mp3 encoder object.
+    function Mp3Create() {
+      if (!(gLame = new lamejs())) {
+        console.log("ERR: Unable to create LAME object.");
+      } else if (!(gEncoder = new gLame.Mp3Encoder(gCfg.chnlCt, gCfg.sampleRate, gCfg.bitRate))) {
+        console.log("ERR: Unable to create MP3 encoder.");
+      } else {
+        console.log("MP3 encoder created.");
+      }
+      return (gEncoder);
+    }
+
+    //Shut everything down.
+    function PowerOff() {
+      console.log("Power down...");
+      if (gIsRecording) {
+        console.log("ERR: PowerOff: You need to stop recording first.");
+      } else {
+        gEncoder = null;
+        gLame = null;
+        gNode = null;
+        gAudioSrc = null;
+        gAudio = null;
+        console.log("Power OFF.");
+        document.getElementById('btnRecord').disabled = true;
+        document.getElementById('btnStop').disabled = true;
+
+
+      }
+    }
+
+    //Record button: Begin recording.
+    function onRecord(btn) {
+      var creator;
+      console.log("Start recording...");
+      if (!gAudio) {
+        console.log("ERR: No Audio source.");
+      } else if (!gEncoder) {
+        console.log("ERR: No encoder.");
+      } else if (gIsRecording) {
+        console.log("ERR: Already recording.");
+      } else {
+        //Create the audio capture node.
+        if (!gNode) {
+          if (!(creator = gAudioSrc.context.createScriptProcessor || gAudioSrc.createJavaScriptNode)) {
+            console.log("ERR: No processor creator?");
+          } else if (!(gNode = creator.call(gAudioSrc.context, gCfg.bufSz, gCfg.chnlCt, gCfg.chnlCt))) {
+            console.log("ERR: Unable to create processor node.");
+          }
+        }
+        if (!gNode) {
+          console.log("ERR: onRecord: No processor node.");
+        } else {
+          //Set callbacks, connect the node between the audio source and destination.
+          gNode.onaudioprocess = onAudioProcess;
+          gAudioSrc.connect(gNode);
+          gNode.connect(gAudioSrc.context.destination);
+          gIsRecording = true;
+          console.log("RECORD");
+        }
+      }
+    }
+
+    //Stop recording.
+    function onStop(btn) {
+      console.log("Stop recording...");
+      if (!gAudio) {
+        console.log("ERR: onStop: No audio.");
+      } else if (!gAudioSrc) {
+        console.log("ERR: onStop: No audio source.");
+      } else if (!gIsRecording) {
+        console.log("ERR: onStop: Not recording.");
+      } else {
+        //Disconnect the node
+        gNode.onaudioprocess = null;
+        gAudioSrc.disconnect(gNode);
+        gNode.disconnect();
+        gIsRecording = false;
+        console.log(lMp3Data)
+        var mp3buf = gEncoder.encodeBuffer(lMp3Data, rMp3Data);
+        var mp3Ct = mp3buf.length;
+        console.log(mp3Ct)
+        if (mp3Ct > 0) {
+          //Add buffer to in-memory output stream.
+          gStrmMp3.push(mp3buf);
+        }
+
+
+        //Flush the last mp3 buffer.
+        var mp3 = gEncoder.flush();
+        if (mp3.length > 0)
+          gStrmMp3.push(mp3);
+        //Present the mp3 stream on the page.
+        showMp3(gStrmMp3);
+        showWav(gStrmWav)
+        console.log("STOP");
+        captureStream.getTracks().forEach(track => track.stop());
+      }
+    }
+
+    //Process a single audio buffer.
+    //Input is an array of floating-point samples.
+    function onAudioProcess(e) {
+      //Cap output stream size
+      if (gMp3Ct > 10 * 1000 * 1000)
+        return;
+      var inBuf = e.inputBuffer;
+
+
+
+      var leftsamples = inBuf.getChannelData(0);
+      var rightsamples = inBuf.getChannelData(1);
+
+      //wav process
+
+      var sampleCt = leftsamples.length;
+      lWavData = Float32Concat(lWavData, leftsamples)
+      rWavData = Float32Concat(rWavData, rightsamples)
+
+      var leftsampleCt = leftsamples.length;
+      var rightsampleCt = rightsamples.length;
+      //Convert floating-point to 16bit signed int.
+      //This may modify the number of samples.
+      var leftsamples16 = convertFloatToInt16(leftsamples);
+      var rightsamples16 = convertFloatToInt16(rightsamples);
+
+      lMp3Data = Float32Concat(lMp3Data, leftsamples16)
+      rMp3Data = Float32Concat(rMp3Data, rightsamples16)
+
+      if (leftsamples16.length > 0) {
+        gPcmCt += leftsamples16.length * 2;
+        gPcmCt += rightsamples16.length * 2;
+
+        // //Encode PCM to mp3
+        // var mp3buf= gEncoder.encodeBuffer(leftsamples16,rightsamples16);
+        // var mp3Ct= mp3buf.length;
+        // if(mp3Ct>0) {
+        //   //Add buffer to in-memory output stream.
+        //   gStrmMp3.push(mp3buf);
+        //   gMp3Ct+= mp3Ct;
+        // }
+        status("%d", gPcmCt);
+        //
+
+
+      }
+    }
+
+    //Convert floating point to 16bit signed int.
+    function convertFloatToInt16(inFloat) {
+      var sampleCt = inFloat.length;
+      var outInt16 = new Int16Array(sampleCt);
+      for (var n1 = 0; n1 < sampleCt; n1++) {
+        //This is where I can apply waveform modifiers.
+        var sample16 = 0x8000 * inFloat[n1];
+        //Clamp value to avoid integer overflow, which causes audible pops and clicks.
+        sample16 = (sample16 < -32767) ? -32767 : (sample16 > 32767) ? 32767 : sample16;
+        outInt16[n1] = sample16;
+      }
+      return (outInt16);
+    }
+
+    //Present the output mp3 stream on the page
+    //as a download link and content in the audio control.
+    function showMp3(mp3) {
+      //Consolidate the collection of MP3 buffers into a single data Blob.
+
+      var blob = new Blob(gStrmMp3, { type: 'audio/mp3' });
+      //Create a URL to the blob.
+      var url = window.URL.createObjectURL(blob);
+      //Use the blob as the source for link and audio control
+      var audio = document.getElementById('AudioPlayer');
+      var download = document.getElementById('DownloadLink');
+      audio.src = url;
+      download.href = url;
+      download.style.color = 'white'
+    }
+
+    // function showWav(wav) {
+    //   var wavBuf = wavEncoder.encode([lWavData])
+
+
+    //   //Consolidate the collection of MP3 buffers into a single data Blob.
+    //   // var blob= new Blob(gStrmWav,{type: 'audio/wav'});
+    //   var blob = wavEncoder.finish(['audio/wav'])
+
+    //   //Create a URL to the blob.
+    //   var url = window.URL.createObjectURL(blob);
+    //   //Use the blob as the source for link and audio control
+    //   var download = document.getElementById('DownloadLink2');
+    //   download.href = url;
+    // }
+  </script>
+
+
+</body>
+
+</html>
