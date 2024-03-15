@@ -9,7 +9,7 @@
 </head>
 
 <body>
-  <div>
+  <!-- <div>
     <br>
     <p style="font: 200% 方正姚体; text-align: center;">尝试更换选用的数学定理来调整AI音盘</p>
   </div>
@@ -22,13 +22,28 @@
       <button class="chord-left" data-chord="dominant7th" style="font: 180% 方正姚体;">正负开方术</button>
       <button class="chord-left" data-chord="sus2" style="font: 180% 方正姚体;">方程术</button>
     </div>
-  </div>
+  </div> -->
+
+    <div>
+      <br>
+      <p style="font: 100% 方正姚体; text-align: center;">尝试更换选用的数学定理来调整AI音盘</p>
+    </div>
+  
+    <div class="controls">
+      <div class="control-group">
+        <button class="chord-left active" data-chord="major" style="font: 100% 方正姚体;">孙子定理</button>
+        <button class="chord-left" data-chord="minor" style="font: 100% 方正姚体;">四元术</button>
+        <button class="chord-left" data-chord="minor7th" style="font: 100% 方正姚体;">天元术</button>
+        <button class="chord-left" data-chord="dominant7th" style="font: 100% 方正姚体;">正负开方</button>
+        <button class="chord-left" data-chord="sus2" style="font: 100% 方正姚体;">方程术</button>
+      </div>
+    </div>
 
   <div id="output-controls">
     <div class="output-control">
-      <label for="tempo-source-selector" style="font: 180% 方正姚体;">速度</label>
+      <label for="tempo-source-selector" style="font: 100% 方正姚体;">速度</label>
       <input id="tempo-selector" type="range" min="10" max="200" step="1" value="90">
-      <span id="tempo-label" style="font: 160% 方正姚体;">90</span>
+      <span id="tempo-label" style="font: 100% 方正姚体;">90</span>
     </div>
   </div>
 
@@ -55,17 +70,16 @@
 
   <div>
     <br><br>
-    <p style="font: 200% 方正姚体; text-align: center;">中央圆盘：算筹 | 生成乐曲：结果<br><br>选择不同的算筹来获得不同的计算结果</p>
+    <p style="font: 100% 方正姚体; text-align: center;">中央圆盘：算筹 | 生成乐曲：结果<br><br>选择不同的算筹来获得不同的计算结果</p>
   </div>
   <br>
   <br>
   <br>
-  <br>
+
   <br />
   <div class="bottombtn">
     <div id="operations">
       <button id="btnPower" onclick="onPower()">生成解答</button>
-
       <button id="btnRecord" onclick="onRecord()" disabled="">开始录音</button>
       <button id="btnStop" onclick="onStop()" disabled="">结束录音</button>
     </div>
